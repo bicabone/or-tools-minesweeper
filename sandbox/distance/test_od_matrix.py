@@ -1,7 +1,7 @@
 import math
 from unittest import TestCase
 
-from sandbox.distance.pythagorean_distance import pythagorean_distance as pythagorean
+from sandbox.distance.pythagorean_distance import pythagorean_distance
 from sandbox.model.location import Location
 from sandbox.distance.od_matrix import ODMatrix
 
@@ -17,7 +17,7 @@ class TestODMatrix(TestCase):
         ]
 
     def test__init__is_empty_when_load_is_False(self):
-        matrix = ODMatrix(self.locations, pythagorean)
+        matrix = ODMatrix(self.locations, pythagorean_distance)
         data = matrix._matrix
         dimension = matrix.dimension
         for i in range(dimension):
@@ -29,7 +29,7 @@ class TestODMatrix(TestCase):
                     self.assertIsNone(entry)
 
     def test__init__is_not_empty_when_load_is_True(self):
-        matrix = ODMatrix(self.locations, pythagorean, load=True)
+        matrix = ODMatrix(self.locations, pythagorean_distance, load=True)
         data = matrix._matrix
         self.assertEqual(0, data[0][0])
         self.assertEqual(1, data[0][1])
@@ -37,14 +37,14 @@ class TestODMatrix(TestCase):
         self.assertEqual(math.sqrt(10), data[1][2])
 
     def test_diagonal(self):
-        matrix = ODMatrix(self.locations, pythagorean)
+        matrix = ODMatrix(self.locations, pythagorean_distance)
         for i in range(matrix.dimension):
             self.assertEqual(0, matrix.distance(i, i))
 
     def test_consistency(self):
-        matrix1 = ODMatrix(self.locations, pythagorean, load=False)
+        matrix1 = ODMatrix(self.locations, pythagorean_distance, load=False)
         for i in range(matrix1.dimension):
             for j in range(matrix1.dimension):
                 matrix1.distance(i, j)
-        matrix2 = ODMatrix(self.locations, pythagorean, load=True)
+        matrix2 = ODMatrix(self.locations, pythagorean_distance, load=True)
         self.assertEqual(matrix1._matrix, matrix2._matrix)

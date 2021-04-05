@@ -18,7 +18,8 @@ class ODMatrix:
         self._init()
 
     def _init(self):
-        log.info("hi")
+        log.info(f'Initializing OD matrix of size {self.dimension}^2'
+                 f' with {"pre" if self.load else "lazy"}-loading')
         self._matrix = []
         for i in range(self.dimension):
             self._matrix += [[]]
