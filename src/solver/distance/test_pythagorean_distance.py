@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from sandbox.distance.pythagorean_distance import PythagoreanDistance
-from sandbox.model.location import Location
+from src.solver.distance.pythagorean_distance import PythagoreanDistance
+from src.solver.model.location import Location
 
 
 class TestPythagoreanDistance(TestCase):

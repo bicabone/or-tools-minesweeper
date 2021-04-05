@@ -1,9 +1,9 @@
 import math
 from unittest import TestCase
 
-from sandbox.distance.pythagorean_distance import pythagorean_distance
-from sandbox.model.location import Location
-from sandbox.distance.od_matrix import ODMatrix
+from src.solver.distance import pythagorean_distance
+from src.solver.model.location import Location
+from src.solver.distance.od_matrix import ODMatrix
 
 
 class TestODMatrix(TestCase):

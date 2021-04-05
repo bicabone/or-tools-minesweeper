@@ -1,8 +1,8 @@
 from typing import List
 
-from sandbox import log
-from sandbox.distance.distance_function import DistanceFunction
-from sandbox.model.location import Location
+from src import log
+from src.solver.distance.distance_function import DistanceFunction
+from src.solver.model.location import Location
 
 
 class ODMatrix:

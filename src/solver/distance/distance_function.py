@@ -1,7 +1,7 @@
 from abc import ABCMeta, ABC, abstractmethod
 from typing import List
 
-from sandbox.model.location import Location
+from src.solver.model.location import Location
 
 
 class DistanceFunction(ABC, metaclass=ABCMeta):
