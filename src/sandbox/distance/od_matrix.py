@@ -1,5 +1,6 @@
 from typing import List
 
+from sandbox import log
 from sandbox.distance.distance_function import DistanceFunction
 from sandbox.model.location import Location
 
@@ -17,6 +18,7 @@ class ODMatrix:
         self._init()
 
     def _init(self):
+        log.info("hi")
         self._matrix = []
         for i in range(self.dimension):
             self._matrix += [[]]

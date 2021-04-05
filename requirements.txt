@@ -1,1 +1,2 @@
 ortools==8.2.8710
+python-dotenv==0.17.0

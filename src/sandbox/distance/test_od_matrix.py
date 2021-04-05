@@ -1,7 +1,7 @@
 import math
 from unittest import TestCase
 
-from sandbox.distance.pythagorean_distance import instance as pythagorean
+from sandbox.distance.pythagorean_distance import pythagorean_distance as pythagorean
 from sandbox.model.location import Location
 from sandbox.distance.od_matrix import ODMatrix
 

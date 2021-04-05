@@ -15,23 +15,22 @@ class NursesPartialSolutionPrinter(cp_model.CpSolverSolutionCallback):
 
     def on_solution_callback(self):
         if self._solution_count in self._solutions:
-            print('Solution %i' % self._solution_count)
+            print(f'Solution {self._solution_count:d}')
             for d in range(self._num_days):
-                print('Day %i' % d)
+                print(f'Day {d:d}')
                 for n in range(self._num_nurses):
                     is_working = False
                     for s in range(self._num_shifts):
                         if self.Value(self._shifts[(n, d, s)]):
                             is_working = True
-                            print('  Nurse %i works shift %i' % (n, s))
+                            print(f'  Nurse {n} works shift {s}')
                     if not is_working:
-                        print('  Nurse {} does not work'.format(n))
+                        print(f'  Nurse {n} does not work')
             print()
         self._solution_count += 1
 
     def solution_count(self):
         return self._solution_count
-
 
 
 def main():
@@ -51,8 +50,7 @@ def main():
     for n in all_nurses:
         for d in all_days:
             for s in all_shifts:
-                shifts[(n, d,
-                        s)] = model.NewBoolVar('shift_n%id%is%i' % (n, d, s))
+                shifts[(n, d, s)] = model.NewBoolVar(f'shift_n{n}d{d}s{s}')
 
     # Each shift is assigned to exactly one nurse in the schedule period.
     for d in all_days:
@@ -94,10 +92,10 @@ def main():
     # Statistics.
     print()
     print('Statistics')
-    print('  - conflicts       : %i' % solver.NumConflicts())
-    print('  - branches        : %i' % solver.NumBranches())
-    print('  - wall time       : %f s' % solver.WallTime())
-    print('  - solutions found : %i' % solution_printer.solution_count())
+    print(f'  - conflicts       : {solver.NumConflicts():d}')
+    print(f'  - branches        : {solver.NumBranches():d}')
+    print(f'  - wall time       : {solver.WallTime():f} s')
+    print(f'  - solutions found : {solution_printer.solution_count():d}')
 
 
 if __name__ == '__main__':

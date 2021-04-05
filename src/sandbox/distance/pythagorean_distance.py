@@ -33,4 +33,4 @@ class PythagoreanDistance(DistanceFunction):
 
 DistanceFunction.register(PythagoreanDistance)
 
-instance = PythagoreanDistance()
+pythagorean_distance = PythagoreanDistance()
