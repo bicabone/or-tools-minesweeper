@@ -1,7 +1,8 @@
 from typing import List
-import requests
+
 import numpy as np
-import math
+import requests
+
 from src import config
 from src.solver.distance.distance_function import DistanceFunction
 from src.solver.model.location import Location
