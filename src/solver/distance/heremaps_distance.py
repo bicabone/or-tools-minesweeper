@@ -1,6 +1,7 @@
 from typing import List
 import requests
 import numpy as np
+import math
 from src import config
 from src.solver.distance.distance_function import DistanceFunction
 from src.solver.model.location import Location
@@ -12,10 +13,13 @@ class HereMapsDistanceFunction(DistanceFunction):
     def generate_region(locations: List[Location]) -> dict:
         if not locations:
             raise ValueError("no locations provided")
+        n = len(locations)
+        mean_lat = sum([x.lat for x in locations]) / n
+        mean_lon = sum([x.lon for x in locations]) / n
         return {
             "type": "circle",
-            "center": {"lat": locations[0].lat, "lon": locations[0].lon},
-            "radius": 50000
+            "center": {"lat": mean_lat, "lon": mean_lon},
+            "radius": 50000  # TODO compute a better radius
         }
 
     @staticmethod
@@ -24,15 +28,15 @@ class HereMapsDistanceFunction(DistanceFunction):
 
     @staticmethod
     def compute_distances(locations: List[Location]):
-        HEREMAPS_BASE_URL = config.get("HEREMAPS_BASE_URL")
-        HEREMAPS_MATRIX_URL = f'{HEREMAPS_BASE_URL}/matrix?async=false'
+        base_url = config.get("HEREMAPS_BASE_URL")
+        matrix_url = f'{base_url}/matrix?async=false'
         region = HereMapsDistanceFunction.generate_region(locations)
         body_locations = HereMapsDistanceFunction.generate_body_locations(locations)
         body = {
             "origins": body_locations,
             "region": region
         }
-        res = requests.post(HEREMAPS_MATRIX_URL, data=body, headers={'Content-Type': 'application/json'})
+        res = requests.post(matrix_url, data=body, headers={'Content-Type': 'application/json'})
         if not res.status_code == 200:
             raise ValueError("heremaps error")
         json = res.json()
