@@ -12,5 +12,5 @@ class DistanceFunction(ABC, metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def compute_distances(locations: List[Location]):
+    def compute_distances(locations: List[Location]) -> List[List[float]]:
         raise ValueError("Must override base class DistanceFunction")

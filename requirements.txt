@@ -2,3 +2,5 @@ ortools==8.2.8710
 python-dotenv==0.17.0
 flask==1.1.2
 flask-restful==0.3.8
+requests==2.25.1
+numpy==1.20.2
