@@ -29,7 +29,8 @@ class HereMapsDistanceFunction(DistanceFunction):
     @staticmethod
     def compute_distances(locations: List[Location]):
         base_url = config.get("HEREMAPS_BASE_URL")
-        matrix_url = f'{base_url}/matrix?async=false'
+        api_key = config.get("HEREMAPS_APP_KEY")
+        matrix_url = f'{base_url}/matrix?async=false&apiKey={api_key}'
         region = HereMapsDistanceFunction.generate_region(locations)
         body_locations = HereMapsDistanceFunction.generate_body_locations(locations)
         body = {
