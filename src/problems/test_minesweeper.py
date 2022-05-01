@@ -1,5 +1,5 @@
 from unittest import TestCase
-from minesweeper import Solver
+from minesweeper import Minesweeper
 import json
 
 
@@ -13,6 +13,6 @@ class Test(TestCase):
 
     def test_solve(self):
         grid = read_json_file("example2.json")
-        solver = Solver(grid, 2,3)
+        solver = Minesweeper(grid, 2, 3)
         solution = solver.solve()
         self.assertIsNotNone(solution)

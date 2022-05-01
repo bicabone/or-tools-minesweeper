@@ -1,38 +1,62 @@
-from typing import List
+from typing import List, Tuple
 from ortools.linear_solver import pywraplp as ot
+from simple_chalk import chalk
 
 
-class Solver:
+class Minesweeper:
+    UNKNOWN = "?"
+    MINE = "M"
 
-    def __init__(self, data: List[List[str]], i, j) -> None:
+    def __init__(self, data: List[List[str]], i=0, j=0) -> None:
         super().__init__()
-        self.data = data
+        self.minefield = data
+        self.starting_point = (i, j)
+        self.last_click = self.starting_point
         self.height = len(data)
         self.width = len(data[0])
-        self.board = self.create_empty_board()  # type: List[List[int or str]]
-        self.print_grid(self.board)
+        self.board = Minesweeper.create_empty_board(self.height, self.width)
         self.total = self.total_mines()
-        self.solver, self.variables = self.create_solver()
-        self.click(i, j)
-        self.add_constraints()
+        self.solver, self.variables = self.create_solver(self.height, self.width)
 
-    def create_empty_board(self) -> List[List[int or str]]:
-        def create_empty_row(width):
+    def solve(self):
+        self.click(self.starting_point)
+
+        while self.total_unvisited() > self.total:
+            self.add_constraints()
+
+            max_boarder = {entry: self.maximize(entry) for entry in self.get_unknown_border()}
+            for index, _max in max_boarder.items():
+                if _max == 0:
+                    self.click(index)
+
+            min_boarder = {entry: self.minimize(entry) for entry in self.get_unknown_border()}
+            for index, _min in min_boarder.items():
+                if _min == 1:
+                    i, j = index
+                    self.board[i][j] = Minesweeper.MINE
+
+        self.last_click = None
+        self.print_grid()
+        return self.board
+
+    @classmethod
+    def create_empty_board(cls, height, width) -> List[List[int or str]]:
+        def create_empty_row():
             return ["?" for _ in range(width)]
 
-        return [create_empty_row(self.width) for _ in range(self.height)]
+        return [create_empty_row() for _ in range(height)]
 
-    def create_solver(self):
+    @classmethod
+    def create_solver(cls, height, width):
+        def create_var(x, y):
+            return solver.NumVar(0, 1, f"({x},{y})")
+
         solver = ot.Solver.CreateSolver('GLOP')
-        variables = [
-            [solver.NumVar(0, 1, f"({i},{j})") for j in range(self.width)]
-            for i in range(self.height)
-        ]
+        variables = [[create_var(i, j) for j in range(width)] for i in range(height)]
         return solver, variables
 
     def add_constraints(self):
         # Add total constraint
-        self.print_grid(self.board)
         all_entries = [x for y in self.variables for x in y]
         self.solver.Add(sum(all_entries) == self.total)
 
@@ -61,32 +85,20 @@ class Solver:
             neighbor_vars = [self.variables[n[0]][n[1]] for n in neighbors]
             self.solver.Add(sum(neighbor_vars) == value)
 
-    def solve(self):
-        while self.total_unvisited() > self.total:
-            max_boarder = {entry: self.maximize(entry[0], entry[1]) for entry in self.get_unknown_border()}
-            for index, _max in max_boarder.items():
-                if _max == 0:
-                    self.click(index[0], index[1])
-
-            min_boarder = {entry: self.minimize(entry[0], entry[1]) for entry in self.get_unknown_border()}
-            for index, _min in min_boarder.items():
-                if _min == 1:
-                    self.board[index[0]][index[1]] = "M"
-
-            self.solver, self.variables = self.create_solver()
-            self.add_constraints()
-
-        return self.board
-
     def total_unvisited(self):
-        return sum(self.board[i][j] in ["?", "M"] for i in range(self.height) for j in range(self.height))
+        return sum(self.board[i][j] in [Minesweeper.UNKNOWN, Minesweeper.MINE] for i in range(self.height) for j in
+                   range(self.height))
 
     def total_mines(self):
-        return sum(self.data[i][j] == "M" for i in range(self.height) for j in range(self.height))
+        return sum(self.minefield[i][j] == Minesweeper.MINE for i in range(self.height) for j in range(self.height))
 
-    def click(self, x, y):
-        def _click(i: int, j: int):
-            if self.is_mine(i, j):
+    def click(self, index):
+        self.last_click = index
+        self.print_grid(self.board)
+
+        def _click(idx: Tuple[int, int]):
+            i, j = idx
+            if self.is_mine(idx):
                 self.board[i][j] = "💣"
                 raise ValueError("Hit a mine!")
 
@@ -96,36 +108,37 @@ class Solver:
 
             if mine_count == 0:
                 indices = self.neighbor_indices(i, j)
-                for index in indices:
-                    if self.board[index[0]][index[1]] == "?":
-                        _click(index[0], index[1])
+                for index_ in (i for i in indices if self.board[i[0]][i[1]] == Minesweeper.UNKNOWN):
+                    _click(index_)
 
-        _click(x, y)
+        _click(index)
 
-    def maximize(self, i, j):
+    def maximize(self, entry):
+        i, j = entry
         variable = self.variables[i][j]
         self.solver.Maximize(variable)
         self.solver.Solve()
         value = self.solver.Objective().Value()
         return int(value)
 
-    def minimize(self, i, j):
+    def minimize(self, entry):
+        i, j = entry
         variable = self.variables[i][j]
         self.solver.Minimize(variable)
         self.solver.Solve()
         value = self.solver.Objective().Value()
         return value
 
-    def is_mine(self, i, j):
-        return self.data[i][j] == "M"
+    def is_mine(self, index):
+        i, j = index
+        return self.minefield[i][j] == Minesweeper.MINE
 
     def get_mine_count(self, i, j):
-        if self.is_mine(i, j):
+        if self.is_mine((i, j)):
             return -1
 
         neighbors = self.neighbor_indices(i, j)
-        return sum(1 if self.is_mine(index[0], index[1]) else 0
-                   for index in neighbors)
+        return sum(self.is_mine(index) for index in neighbors)
 
     def get_border(self):
         def match(a, b):
@@ -150,8 +163,9 @@ class Solver:
                 return False
             indices = self.neighbor_indices(a, b)
             for index in indices:
-                entry = self.board[index[0]][index[1]]
-                if type(entry) == int and entry > 0:
+                i, j = index
+                entry = self.board[i][j]
+                if type(entry) == int:
                     return True
             return False
 
@@ -160,9 +174,27 @@ class Solver:
                 for j in range(self.width)
                 if match(i, j)]
 
-    @staticmethod
-    def print_grid(grid):
-        [print(*line) for line in grid]
+    def print_grid(self, grid=None):
+        last_click = self.last_click
+
+        def color(i, line):
+            def color_(j, item):
+                if (i, j) == last_click:
+                    return chalk.green.bold(item)
+                if item == "M":
+                    return chalk.redBright(item)
+                if type(item) == int and item > 0:
+                    return chalk.blue.bold(item)
+                if type(item) == int and item == 0:
+                    return chalk.blackBright(item)
+                if item == '?':
+                    return chalk.whiteBright(item)
+                return item
+
+            return [color_(j, x) for j, x in enumerate(line)]
+
+        grid = grid if grid else self.board
+        [print(*color(i, line)) for i, line in enumerate(grid)]
         print()
 
     def neighbor_indices(self, i, j):

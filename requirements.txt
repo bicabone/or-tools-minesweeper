@@ -5,3 +5,4 @@ flask-restful==0.3.8
 requests==2.25.1
 numpy==1.20.2
 requests-mock==1.8.0
+simple_chalk==0.1.0
