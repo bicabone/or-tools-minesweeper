@@ -13,8 +13,6 @@ class Test(TestCase):
 
     def test_solve(self):
         grid = read_json_file("example2.json")
-        solver = Solver(grid)
-        solver.click(2, 3)
-        solver.print_grid(solver.discovered)
+        solver = Solver(grid, 2,3)
         solution = solver.solve()
         self.assertIsNotNone(solution)
