@@ -14,6 +14,7 @@ class Minesweeper:
         self.last_click = self.starting_point
         self.height = len(data)
         self.width = len(data[0])
+        self.solvable = True
         self.board = Minesweeper.create_empty_board(self.height, self.width)
         self.total = self.total_mines()
         self.solver, self.variables = self.create_solver(self.height, self.width)
@@ -23,20 +24,30 @@ class Minesweeper:
 
         while self.total_unvisited() > self.total:
             self.add_constraints()
+            action = False
 
-            max_boarder = {entry: self.maximize(entry) for entry in self.get_unknown_border()}
+            unknown_boarder = self.get_unknown_border()
+            max_boarder = {entry: self.maximize(entry) for entry in unknown_boarder}
             for index, _max in max_boarder.items():
                 if _max == 0:
                     self.click(index)
+                    action = True
 
-            min_boarder = {entry: self.minimize(entry) for entry in self.get_unknown_border()}
+            min_boarder = {entry: self.minimize(entry) for entry in unknown_boarder}
             for index, _min in min_boarder.items():
                 if _min == 1:
                     i, j = index
                     self.board[i][j] = Minesweeper.MINE
+                    action = True
+
+            if not action:
+                self.solvable = False
+                break
 
         self.last_click = None
         self.print_grid()
+        if not self.solvable:
+            print(chalk.redBright("Unsolvable."))
         return self.board
 
     @classmethod
@@ -72,7 +83,7 @@ class Minesweeper:
         mines = [self.variables[i][j]
                  for j in range(self.width)
                  for i in range(self.height)
-                 if type(self.board[i][j]) == str and self.board[i][j] == "M"]
+                 if type(self.board[i][j]) == str and self.board[i][j] == Minesweeper.MINE]
         for mine in mines:
             self.solver.Add(mine == 1)
 
@@ -94,7 +105,7 @@ class Minesweeper:
 
     def click(self, index):
         self.last_click = index
-        self.print_grid(self.board)
+        self.print_grid()
 
         def _click(idx: Tuple[int, int]):
             i, j = idx
@@ -181,13 +192,13 @@ class Minesweeper:
             def color_(j, item):
                 if (i, j) == last_click:
                     return chalk.green.bold(item)
-                if item == "M":
+                if item == Minesweeper.MINE:
                     return chalk.redBright(item)
                 if type(item) == int and item > 0:
                     return chalk.blue.bold(item)
                 if type(item) == int and item == 0:
                     return chalk.blackBright(item)
-                if item == '?':
+                if item == Minesweeper.UNKNOWN:
                     return chalk.whiteBright(item)
                 return item
 
@@ -198,39 +209,12 @@ class Minesweeper:
         print()
 
     def neighbor_indices(self, i, j):
-        """clockwise"""
-        valid_indices = []
+        def make_index(di, dj):
+            index = (i + di, j + dj)
+            return index if 0 <= index[0] <= self.height - 1 and 0 <= index[1] <= self.height - 1 else None
 
-        # NW
-        if i > 0 and j > 0:
-            valid_indices.append((i - 1, j - 1))
-
-        # N
-        if i > 0:
-            valid_indices.append((i - 1, j))
-
-        # NE
-        if i > 0 and j < self.width - 1:
-            valid_indices.append((i - 1, j + 1))
-
-        # E
-        if j < self.width - 1:
-            valid_indices.append((i, j + 1))
-
-        # SE
-        if i < self.height - 1 and j < self.width - 1:
-            valid_indices.append((i + 1, j + 1))
-
-        # S
-        if i < self.height - 1:
-            valid_indices.append((i + 1, j))
-
-        # SW
-        if i < self.height - 1 and j > 0:
-            valid_indices.append((i + 1, j - 1))
-
-        # W
-        if j > 0:
-            valid_indices.append((i, j - 1))
-
-        return valid_indices
+        return [index for index in [
+            make_index(delta_i, delta_j)
+            for delta_i in [-1, 0, 1]
+            for delta_j in [-1, 0, 1]
+        ] if index]
