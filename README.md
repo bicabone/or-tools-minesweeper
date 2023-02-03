@@ -1,4 +1,4 @@
-# Google OR-Tools Sandbox
+# Google OR-Tools Minesweeper implementation
 
 Running locally:
 1. Set up a virtualenv.
