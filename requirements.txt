@@ -1,8 +1,8 @@
-ortools==8.2.8710
+ortools==9.8.3296
 python-dotenv==0.17.0
 flask==1.1.2
 flask-restful==0.3.8
 requests==2.25.1
-numpy==1.20.2
+numpy==1.26.4
 requests-mock==1.8.0
 simple_chalk==0.1.0
